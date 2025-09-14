@@ -1,22 +1,190 @@
 import { useState } from 'react'
 import Head from 'next/head'
 
-const sampleData = [
+const ridershipData = [
   { week: 'W01', year2019: 35000, year2020: 34500, year2021: 8500, year2022: 15000, year2023: 18500 },
   { week: 'W05', year2019: 36200, year2020: 35800, year2021: 8800, year2022: 15800, year2023: 19200 },
   { week: 'W10', year2019: 37500, year2020: 32000, year2021: 9200, year2022: 16500, year2023: 20100 },
   { week: 'W15', year2019: 38000, year2020: 15000, year2021: 10500, year2022: 18000, year2023: 21500 },
-  { week: 'W20', year2019: 38500, year2020: 8500, year2021: 12000, year2022: 19500, year2023: 22800 }
+  { week: 'W20', year2019: 38500, year2020: 8500, year2021: 12000, year2022: 19500, year2023: 22800 },
+  { week: 'W25', year2019: 37800, year2020: 6200, year2021: 13500, year2022: 20800, year2023: 23500 },
+  { week: 'W30', year2019: 36500, year2020: 7800, year2021: 15200, year2022: 21500, year2023: 24200 },
+  { week: 'W35', year2019: 37200, year2020: 9500, year2021: 16800, year2022: 22100, year2023: 24800 },
+  { week: 'W40', year2019: 38800, year2020: 11200, year2021: 18500, year2022: 23200, year2023: 25500 },
+  { week: 'W45', year2019: 39200, year2020: 12800, year2021: 19800, year2022: 23800, year2023: 26200 },
+  { week: 'W50', year2019: 35800, year2020: 14200, year2021: 20500, year2022: 24200, year2023: 26800 },
+  { week: 'W52', year2019: 32500, year2020: 15800, year2021: 21200, year2022: 24800, year2023: 27500 }
 ]
 
-export default function Home() {
-  const [showData, setShowData] = useState(false)
+const grangerResults = [
+  { test: '2020 → 2021', pValue: 0.7789, significant: false, interpretation: 'Cannot predict 2021 from 2020' },
+  { test: '2019 → 2021', pValue: 0.0073, significant: true, interpretation: 'Can predict 2021 from 2019' },
+  { test: '2021 → 2022', pValue: 0.0156, significant: true, interpretation: 'Can predict 2022 from 2021' },
+  { test: '2022 → 2023', pValue: 0.0089, significant: true, interpretation: 'Can predict 2023 from 2022' }
+]
 
+function CodeBlock({ code, title }) {
+  const [copied, setCopied] = useState(false)
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="bg-gray-900 rounded-lg overflow-hidden my-4">
+      <div className="bg-gray-800 px-4 py-2 flex justify-between items-center">
+        <span className="text-gray-300 text-sm font-medium">{title}</span>
+        <button onClick={copyCode} className="text-gray-400 hover:text-white text-sm">
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto">
+        <code className="text-green-400 text-sm font-mono">{code}</code>
+      </pre>
+    </div>
+  )
+}
+
+function StepCard({ number, title, children }) {
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+      <div className="flex items-center mb-4">
+        <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full mr-3">
+          {number}
+        </div>
+        <h2 className="text-xl font-semibold">{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function GrangerTestDemo() {
+  const [selectedTest, setSelectedTest] = useState(0)
+  
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200 my-6">
+      <h3 className="text-lg font-semibold mb-4">Interactive Granger Causality Testing</h3>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <h4 className="font-medium mb-3">Select Test Comparison:</h4>
+          <div className="space-y-2">
+            {grangerResults.map((result, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedTest(idx)}
+                className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                  selectedTest === idx 
+                    ? 'bg-blue-600 text-white border-blue-600' 
+                    : 'bg-white border-gray-300 hover:border-blue-600'
+                }`}
+              >
+                {result.test}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">
+            Test Result: {grangerResults[selectedTest].test}
+          </h4>
+          <div className="space-y-2 text-sm">
+            <p><strong>P-value:</strong> {grangerResults[selectedTest].pValue}</p>
+            <p><strong>Significant:</strong> 
+              <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                grangerResults[selectedTest].significant 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {grangerResults[selectedTest].significant ? 'Yes (p < 0.05)' : 'No (p ≥ 0.05)'}
+              </span>
+            </p>
+            <p><strong>Interpretation:</strong> {grangerResults[selectedTest].interpretation}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SimpleChart() {
+  const [showYears, setShowYears] = useState({
+    year2019: true,
+    year2020: true,
+    year2021: true,
+    year2022: true,
+    year2023: true
+  })
+
+  const toggleYear = (year) => {
+    setShowYears(prev => ({ ...prev, [year]: !prev[year] }))
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <h3 className="text-lg font-semibold mb-4">Capitol Corridor Weekly Ridership Trends</h3>
+      
+      <div className="flex flex-wrap gap-2 mb-4">
+        {Object.entries(showYears).map(([year, visible]) => (
+          <button
+            key={year}
+            onClick={() => toggleYear(year)}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              visible 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+          >
+            {year.replace('year', '')}
+          </button>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-2 font-medium">Week</th>
+              {showYears.year2019 && <th className="text-left py-2 font-medium text-blue-600">2019</th>}
+              {showYears.year2020 && <th className="text-left py-2 font-medium text-red-600">2020</th>}
+              {showYears.year2021 && <th className="text-left py-2 font-medium text-orange-600">2021</th>}
+              {showYears.year2022 && <th className="text-left py-2 font-medium text-yellow-600">2022</th>}
+              {showYears.year2023 && <th className="text-left py-2 font-medium text-green-600">2023</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {ridershipData.map((row, idx) => (
+              <tr key={idx} className="border-b">
+                <td className="py-2 font-mono text-sm">{row.week}</td>
+                {showYears.year2019 && <td className="py-2 text-blue-600">{row.year2019.toLocaleString()}</td>}
+                {showYears.year2020 && <td className="py-2 text-red-600">{row.year2020.toLocaleString()}</td>}
+                {showYears.year2021 && <td className="py-2 text-orange-600">{row.year2021.toLocaleString()}</td>}
+                {showYears.year2022 && <td className="py-2 text-yellow-600">{row.year2022.toLocaleString()}</td>}
+                {showYears.year2023 && <td className="py-2 text-green-600">{row.year2023.toLocaleString()}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      <div className="mt-4 text-sm text-gray-600">
+        <p><strong>Key Observation:</strong> The dramatic drop in 2020 demonstrates the "stochastic shock" of COVID-19, 
+        while gradual recovery is visible in subsequent years.</p>
+      </div>
+    </div>
+  )
+}
+
+export default function Home() {
   return (
     <>
       <Head>
         <title>Ridership Prediction with Non-Linear Models</title>
-        <meta name="description" content="Interactive guide for predicting time series passenger counts" />
+        <meta name="description" content="Interactive guide for predicting time series passenger counts using modern statistical methods" />
+        <meta name="keywords" content="time series, prediction, ridership, transportation, machine learning, prophet" />
       </Head>
       
       <div className="min-h-screen bg-gray-50">
@@ -52,48 +220,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Sample Ridership Data</h2>
-              <button
-                onClick={() => setShowData(!showData)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {showData ? 'Hide' : 'Show'} Data
-              </button>
-            </div>
-            
-            {showData && (
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">Week</th>
-                      <th className="text-left py-2">2019</th>
-                      <th className="text-left py-2">2020</th>
-                      <th className="text-left py-2">2021</th>
-                      <th className="text-left py-2">2022</th>
-                      <th className="text-left py-2">2023</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sampleData.map((row, idx) => (
-                      <tr key={idx} className="border-b">
-                        <td className="py-2">{row.week}</td>
-                        <td className="py-2">{row.year2019.toLocaleString()}</td>
-                        <td className="py-2 text-red-600">{row.year2020.toLocaleString()}</td>
-                        <td className="py-2 text-orange-600">{row.year2021.toLocaleString()}</td>
-                        <td className="py-2 text-yellow-600">{row.year2022.toLocaleString()}</td>
-                        <td className="py-2 text-green-600">{row.year2023.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <SimpleChart />
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-12">
             <div className="flex items-start">
               <div className="w-5 h-5 text-amber-600 mt-0.5 mr-3">⚠</div>
               <div>
@@ -108,13 +237,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-8">
-            <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full mr-3">
-                  1
-                </div>
-                <h2 className="text-xl font-semibold">Understanding Time Series Data</h2>
-              </div>
+            <StepCard number={1} title="Understanding Time Series Data">
               <p className="text-gray-700 mb-4">
                 Ridership data measured at discrete intervals (weekly) is a perfect example of time series data. 
                 However, not all historical data is useful for prediction. The 2020 trend differs substantially 
@@ -129,32 +252,254 @@ export default function Home() {
                   <li><strong>Temporal Dependency:</strong> How past values influence future predictions</li>
                 </ul>
               </div>
-            </div>
+            </StepCard>
 
-            <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full mr-3">
-                  2
-                </div>
-                <h2 className="text-xl font-semibold">Granger Causality Testing</h2>
-              </div>
+            <StepCard number={2} title="Granger Causality Testing">
               <p className="text-gray-700 mb-4">
                 Before building predictive models, we must determine which historical periods can reliably predict future periods. 
                 Despite its name, Granger causality doesn't establish true causation—it only tests predictive utility.
               </p>
-              
-              <div className="bg-gray-900 rounded-lg p-4">
-                <pre className="text-green-400 text-sm font-mono">
-{`# Loading lmtest and running grangertest()
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <div className="w-5 h-5 text-amber-600 mt-0.5 mr-3 flex-shrink-0">⚠</div>
+                  <div>
+                    <h4 className="font-semibold text-amber-800 mb-2">Philosophical Warning: Post Hoc Fallacy</h4>
+                    <div className="text-amber-700 space-y-2">
+                      <p><strong>Fallacy:</strong> "A occurred, then B occurred after A, therefore A caused B"</p>
+                      <p><strong>Reality:</strong> Granger tests only measure predictive utility, not true causation.</p>
+                      <p><strong>Examples of absurd "Granger causation":</strong></p>
+                      <ul className="list-disc list-inside ml-4 text-sm">
+                        <li>Eggs came before chickens</li>
+                        <li>GDP can "cause" sunspots</li>
+                        <li>The sun doesn't affect sunrise/sunset times</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <GrangerTestDemo />
+
+              <CodeBlock
+                title="Granger Causality Test Setup"
+                code={`# Loading lmtest and running grangertest()
 install.packages('lmtest')
 library(lmtest)
 
 grangertest([Timeseries 1], [Timeseries 2], order = [# lags])
 
 # Example: Testing if 2020 can predict 2021
-grangertest(CCJPA_2020, CCJPA_2021, order = 3)`}
-                </pre>
+grangertest(CCJPA_2020, CCJPA_2021, order = 3)
+
+# Example: Testing if 2019 can predict 2021  
+grangertest(CCJPA_2019, CCJPA_2021, order = 3)`}
+              />
+            </StepCard>
+
+            <StepCard number={3} title="Optimal Lag Selection">
+              <p className="text-gray-700 mb-4">
+                Determining the appropriate number of lags is crucial. Too few lags miss important patterns, 
+                while too many lags can lead to false-positive findings. We use statistical criteria to choose optimal lags.
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-3">Statistical Criteria:</h4>
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 p-3 rounded">
+                      <strong>AIC(n)</strong> - Akaike Information Criterion
+                    </div>
+                    <div className="bg-green-50 p-3 rounded">
+                      <strong>SC(n)</strong> - Schwarz/Bayesian Information Criterion
+                    </div>
+                    <div className="bg-purple-50 p-3 rounded">
+                      <strong>HQ(n)</strong> - Hannan-Quinn Information Criterion
+                    </div>
+                    <div className="bg-orange-50 p-3 rounded">
+                      <strong>FPE(n)</strong> - Final Prediction Error
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-3">Sample VARselect() Output:</h4>
+                  <pre className="text-xs font-mono bg-white p-3 rounded border">
+{`Selection-order criteria:
+AIC(n)  HQ(n)   SC(n)   FPE(n)
+1       1       1       1
+
+$criteria
+      1         2         3         4         5
+AIC 1.451e+01 1.427e+01 1.420e+01 1.419e+01 1.418e+01
+HQ  1.451e+01 1.427e+01 1.420e+01 1.419e+01 1.418e+01
+SC  1.451e+01 1.427e+01 1.420e+01 1.419e+01 1.418e+01
+FPE 2.008e+06 1.539e+06 1.602e+06 1.685e+06 1.745e+06`}
+                  </pre>
+                </div>
               </div>
+
+              <CodeBlock
+                title="Lag Selection with vars Package"
+                code={`# Loading vars and running VARselect()
+install.packages('vars')
+library(vars)
+
+VARselect([Timeseries], lag.max = [maximum lags])
+
+# Example with ridership data
+ridership_data <- cbind(CCJPA_2019, CCJPA_2021, CCJPA_2022)
+lag_selection <- VARselect(ridership_data, lag.max = 12)
+
+# View results
+lag_selection$selection`}
+              />
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <p className="text-blue-800">
+                  <strong>Best Practice:</strong> When AIC(n) and SC(n) disagree, practitioners often prefer SC(n) 
+                  due to its greater consistency. Choose the higher of the two optimal lag orders for your Granger test.
+                </p>
+              </div>
+            </StepCard>
+
+            <StepCard number={4} title="Prophet: Non-Linear Modeling">
+              <p className="text-gray-700 mb-4">
+                While linear regression is simple, it fails to capture seasonal patterns in ridership data. 
+                Facebook's Prophet library provides a robust framework for non-linear additive time series forecasting 
+                with automatic seasonality detection.
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-800 mb-3">Prophet Advantages:</h4>
+                  <ul className="text-green-700 text-sm space-y-1">
+                    <li>• Handles seasonal patterns automatically</li>
+                    <li>• Robust to missing data and outliers</li>
+                    <li>• Provides uncertainty intervals</li>
+                    <li>• Simple parameter tuning</li>
+                    <li>• Built-in holiday effects</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3">Key Features:</h4>
+                  <ul className="text-blue-700 text-sm space-y-1">
+                    <li>• Non-linear trend modeling</li>
+                    <li>• Multiple seasonality components</li>
+                    <li>• Automatic changepoint detection</li>
+                    <li>• 80% confidence intervals by default</li>
+                    <li>• Easy re-fitting with new data</li>
+                  </ul>
+                </div>
+              </div>
+
+              <CodeBlock
+                title="Prophet Model Implementation"
+                code={`# Loading prophet
+install.packages('prophet')
+library(prophet)
+
+# Prepare data structure (filtered based on Granger tests)
+CCJPA_ridership <- data.frame(
+  ds = seq(as.Date("2021-01-01"), as.Date("2022-12-31"), by = "week"),
+  y = c(your_ridership_data_2021_2022)
+)
+
+# Fit the model
+m <- prophet(CCJPA_ridership)
+
+# Create future dataframe (predict 365 days forward)
+future <- make_future_dataframe(m, periods = 365)
+
+# Generate forecast
+forecast <- predict(m, future)
+
+# Visualize results
+plot(m, forecast)
+
+# Export predictions
+write.csv(forecast, "ridership_forecast_2024.csv")`}
+              />
+            </StepCard>
+
+            <StepCard number={5} title="Results & Applications">
+              <p className="text-gray-700 mb-4">
+                With just a few lines of code, we've generated machine learning predictions with uncertainty bounds. 
+                These forecasts have immediate applications in transportation planning and operations research.
+              </p>
+
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="w-8 h-8 bg-blue-600 rounded mx-auto mb-2"></div>
+                  <h4 className="font-medium">Service Planning</h4>
+                  <p className="text-sm text-gray-600">Optimize route frequency and capacity</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="w-8 h-8 bg-green-600 rounded mx-auto mb-2"></div>
+                  <h4 className="font-medium">Resource Allocation</h4>
+                  <p className="text-sm text-gray-600">Budget staff and equipment needs</p>
+                </div>
+                <div className="text-center p-4 bg-amber-50 rounded-lg">
+                  <div className="w-8 h-8 bg-amber-600 rounded mx-auto mb-2"></div>
+                  <h4 className="font-medium">Financial Forecasting</h4>
+                  <p className="text-sm text-gray-600">Predict fare revenue and subsidies</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h4 className="font-semibold mb-4">Key Takeaways for Transit Agencies:</h4>
+                <div className="space-y-3 text-gray-700">
+                  <div className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">1.</span>
+                    <span><strong>Historical Context Matters:</strong> COVID-19 created a structural break—pre-2020 data may not predict post-2020 patterns.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">2.</span>
+                    <span><strong>Statistical Validation:</strong> Always use Granger tests to validate which time periods can predict others.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">3.</span>
+                    <span><strong>Uncertainty Quantification:</strong> Prophet provides confidence intervals—essential for risk management.</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="text-blue-600 font-bold mr-3">4.</span>
+                    <span><strong>Operational Applications:</strong> Forecasts inform service planning, budgeting, and policy decisions.</span>
+                  </div>
+                </div>
+              </div>
+            </StepCard>
+          </div>
+
+          <div className="mt-16 bg-white border border-gray-200 rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4">Technical References & Further Reading</h2>
+            <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-600">
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-2">Statistical Methods:</h3>
+                <ul className="space-y-1">
+                  <li>• Box & Jenkins (1970) - Time Series Analysis: Forecasting and Control</li>
+                  <li>• Lükepohl (1991) - Introduction to Multiple Time Series Analysis</li>
+                  <li>• Burnham & Anderson (2004) - Model Selection with AIC and BIC</li>
+                  <li>• Lopez & Weber (2017) - Testing for Granger Causality in Panel Data</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-2">Implementation Resources:</h3>
+                <ul className="space-y-1">
+                  <li>• Facebook Prophet Documentation</li>
+                  <li>• R lmtest Package for Granger Testing</li>
+                  <li>• R vars Package for VAR Model Selection</li>
+                  <li>• Anthropic Claude for Statistical Computing</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-amber-800 text-sm">
+                <strong>Disclaimer:</strong> This methodology was developed for Capitol Corridor Joint Powers Authority 
+                during the post-COVID recovery period. Results may vary based on regional conditions, service patterns, 
+                and external factors. Always validate predictions with domain expertise and operational knowledge.
+              </p>
             </div>
           </div>
         </main>
