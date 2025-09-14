@@ -16,12 +16,286 @@ const ridershipData = [
   { week: 'W52', year2019: 32500, year2020: 15800, year2021: 21200, year2022: 24800, year2023: 27500 }
 ]
 
+const forecastData = [
+  { week: 'W04', predicted: 28500, lower: 26000, upper: 31000 },
+  { week: 'W08', predicted: 29200, lower: 26500, upper: 31900 },
+  { week: 'W12', predicted: 30100, lower: 27200, upper: 33000 },
+  { week: 'W16', predicted: 30800, lower: 27800, upper: 33800 },
+  { week: 'W20', predicted: 31500, lower: 28400, upper: 34600 },
+  { week: 'W24', predicted: 32200, lower: 29000, upper: 35400 },
+  { week: 'W28', predicted: 31800, lower: 28600, upper: 35000 },
+  { week: 'W32', predicted: 31400, lower: 28200, upper: 34600 },
+  { week: 'W36', predicted: 31900, lower: 28700, upper: 35100 },
+  { week: 'W40', predicted: 32600, lower: 29400, upper: 35800 },
+  { week: 'W44', predicted: 33200, lower: 30000, upper: 36400 },
+  { week: 'W48', predicted: 32800, lower: 29600, upper: 36000 },
+  { week: 'W52', predicted: 32400, lower: 29200, upper: 35600 }
+]
+
 const grangerResults = [
   { test: '2020 → 2021', pValue: 0.7789, significant: false, interpretation: 'Cannot predict 2021 from 2020' },
   { test: '2019 → 2021', pValue: 0.0073, significant: true, interpretation: 'Can predict 2021 from 2019' },
   { test: '2021 → 2022', pValue: 0.0156, significant: true, interpretation: 'Can predict 2022 from 2021' },
   { test: '2022 → 2023', pValue: 0.0089, significant: true, interpretation: 'Can predict 2023 from 2022' }
 ]
+
+function RidershipChart() {
+  const [showPrediction, setShowPrediction] = useState(false)
+  const [showYears, setShowYears] = useState({
+    year2019: true,
+    year2020: true,
+    year2021: true,
+    year2022: true,
+    year2023: true
+  })
+
+  const toggleYear = (year) => {
+    setShowYears(prev => ({ ...prev, [year]: !prev[year] }))
+  }
+
+  // Chart dimensions
+  const width = 800
+  const height = 400
+  const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+  const chartWidth = width - margin.left - margin.right
+  const chartHeight = height - margin.top - margin.bottom
+
+  // Scale functions
+  const maxValue = Math.max(...ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023]))
+  const minValue = Math.min(...ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023]))
+  const xScale = (index) => (index / (ridershipData.length - 1)) * chartWidth
+  const yScale = (value) => chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
+
+  // Generate path data for each year
+  const generatePath = (yearKey) => {
+    return ridershipData
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d[yearKey])}`)
+      .join(' ')
+  }
+
+  // Generate forecast path
+  const generateForecastPath = () => {
+    const startX = chartWidth
+    return forecastData
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${startX + (i / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.predicted)}`)
+      .join(' ')
+  }
+
+  // Generate confidence interval path
+  const generateConfidencePath = () => {
+    const startX = chartWidth
+    const upperPath = forecastData
+      .map((d, i) => `${startX + (i / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.upper)}`)
+      .join(' L ')
+    const lowerPath = forecastData
+      .slice()
+      .reverse()
+      .map((d, i) => `${startX + ((forecastData.length - 1 - i) / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.lower)}`)
+      .join(' L ')
+    return `M ${upperPath} L ${lowerPath} Z`
+  }
+
+  const yearColors = {
+    year2019: '#3b82f6',
+    year2020: '#dc2626',
+    year2021: '#f97316',
+    year2022: '#eab308',
+    year2023: '#059669'
+  }
+
+  const yearLabels = {
+    year2019: '2019 (Pre-COVID)',
+    year2020: '2020 (COVID Impact)',
+    year2021: '2021 (Recovery Start)',
+    year2022: '2022 (Recovery)',
+    year2023: '2023 (Stabilization)'
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Capitol Corridor Weekly Ridership & 2024 Forecast</h3>
+        <button
+          onClick={() => setShowPrediction(!showPrediction)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          {showPrediction ? 'Hide' : 'Show'} 2024 Prediction
+        </button>
+      </div>
+      
+      <div className="flex flex-wrap gap-2 mb-4">
+        {Object.entries(showYears).map(([year, visible]) => (
+          <button
+            key={year}
+            onClick={() => toggleYear(year)}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              visible 
+                ? 'text-white' 
+                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+            style={visible ? { backgroundColor: yearColors[year] } : {}}
+          >
+            {year.replace('year', '')}
+          </button>
+        ))}
+      </div>
+
+      <div className="overflow-x-auto">
+        <svg width={width} height={height} className="border rounded">
+          <g transform={`translate(${margin.left}, ${margin.top})`}>
+            {/* Grid lines */}
+            {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+              <g key={ratio}>
+                <line
+                  x1={0}
+                  y1={chartHeight * ratio}
+                  x2={chartWidth}
+                  y2={chartHeight * ratio}
+                  stroke="#e5e7eb"
+                  strokeWidth={1}
+                />
+                <text
+                  x={-10}
+                  y={chartHeight * ratio + 4}
+                  textAnchor="end"
+                  fontSize="12"
+                  fill="#6b7280"
+                >
+                  {Math.round(minValue + (maxValue - minValue) * (1 - ratio)).toLocaleString()}
+                </text>
+              </g>
+            ))}
+
+            {/* Year lines */}
+            {Object.entries(showYears).map(([year, visible]) => {
+              if (!visible) return null
+              return (
+                <path
+                  key={year}
+                  d={generatePath(year)}
+                  fill="none"
+                  stroke={yearColors[year]}
+                  strokeWidth={2}
+                />
+              )
+            })}
+
+            {/* Data points */}
+            {Object.entries(showYears).map(([year, visible]) => {
+              if (!visible) return null
+              return ridershipData.map((d, i) => (
+                <circle
+                  key={`${year}-${i}`}
+                  cx={xScale(i)}
+                  cy={yScale(d[year])}
+                  r={3}
+                  fill={yearColors[year]}
+                />
+              ))
+            })}
+
+            {/* Forecast */}
+            {showPrediction && (
+              <g>
+                {/* Confidence interval */}
+                <path
+                  d={generateConfidencePath()}
+                  fill="#3b82f6"
+                  fillOpacity={0.1}
+                />
+                
+                {/* Forecast line */}
+                <path
+                  d={generateForecastPath()}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  strokeDasharray="5,5"
+                />
+
+                {/* Forecast points */}
+                {forecastData.map((d, i) => (
+                  <circle
+                    key={`forecast-${i}`}
+                    cx={chartWidth + (i / (forecastData.length - 1)) * chartWidth * 0.5}
+                    cy={yScale(d.predicted)}
+                    r={3}
+                    fill="#3b82f6"
+                  />
+                ))}
+
+                {/* 2024 label */}
+                <text
+                  x={chartWidth + chartWidth * 0.25}
+                  y={20}
+                  textAnchor="middle"
+                  fontSize="12"
+                  fill="#3b82f6"
+                  fontWeight="bold"
+                >
+                  2024 (Predicted)
+                </text>
+              </g>
+            )}
+
+            {/* X-axis labels */}
+            {ridershipData.map((d, i) => (
+              <text
+                key={i}
+                x={xScale(i)}
+                y={chartHeight + 20}
+                textAnchor="middle"
+                fontSize="10"
+                fill="#6b7280"
+              >
+                {d.week}
+              </text>
+            ))}
+
+            {/* Y-axis label */}
+            <text
+              x={-40}
+              y={chartHeight / 2}
+              textAnchor="middle"
+              fontSize="12"
+              fill="#6b7280"
+              transform={`rotate(-90, -40, ${chartHeight / 2})`}
+            >
+              Weekly Ridership
+            </text>
+          </g>
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="mt-4 flex flex-wrap gap-4 text-sm">
+        {Object.entries(showYears).map(([year, visible]) => {
+          if (!visible) return null
+          return (
+            <div key={year} className="flex items-center">
+              <div 
+                className="w-4 h-0.5 mr-2"
+                style={{ backgroundColor: yearColors[year] }}
+              ></div>
+              <span>{yearLabels[year]}</span>
+            </div>
+          )
+        })}
+        {showPrediction && (
+          <div className="flex items-center">
+            <div className="w-4 h-0.5 mr-2 border-t-2 border-dashed border-blue-600"></div>
+            <span>2024 Forecast (Prophet Model)</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="mt-4 text-sm text-gray-600">
+        <p><strong>Key Observations:</strong> The dramatic drop in 2020 demonstrates the "stochastic shock" of COVID-19. 
+        The 2024 forecast shows continued gradual recovery with uncertainty bounds reflecting post-pandemic volatility.</p>
+      </div>
+    </div>
+  )
+}
 
 function CodeBlock({ code, title }) {
   const [copied, setCopied] = useState(false)
@@ -110,74 +384,6 @@ function GrangerTestDemo() {
   )
 }
 
-function SimpleChart() {
-  const [showYears, setShowYears] = useState({
-    year2019: true,
-    year2020: true,
-    year2021: true,
-    year2022: true,
-    year2023: true
-  })
-
-  const toggleYear = (year) => {
-    setShowYears(prev => ({ ...prev, [year]: !prev[year] }))
-  }
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-      <h3 className="text-lg font-semibold mb-4">Capitol Corridor Weekly Ridership Trends</h3>
-      
-      <div className="flex flex-wrap gap-2 mb-4">
-        {Object.entries(showYears).map(([year, visible]) => (
-          <button
-            key={year}
-            onClick={() => toggleYear(year)}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              visible 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
-          >
-            {year.replace('year', '')}
-          </button>
-        ))}
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2 font-medium">Week</th>
-              {showYears.year2019 && <th className="text-left py-2 font-medium text-blue-600">2019</th>}
-              {showYears.year2020 && <th className="text-left py-2 font-medium text-red-600">2020</th>}
-              {showYears.year2021 && <th className="text-left py-2 font-medium text-orange-600">2021</th>}
-              {showYears.year2022 && <th className="text-left py-2 font-medium text-yellow-600">2022</th>}
-              {showYears.year2023 && <th className="text-left py-2 font-medium text-green-600">2023</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {ridershipData.map((row, idx) => (
-              <tr key={idx} className="border-b">
-                <td className="py-2 font-mono text-sm">{row.week}</td>
-                {showYears.year2019 && <td className="py-2 text-blue-600">{row.year2019.toLocaleString()}</td>}
-                {showYears.year2020 && <td className="py-2 text-red-600">{row.year2020.toLocaleString()}</td>}
-                {showYears.year2021 && <td className="py-2 text-orange-600">{row.year2021.toLocaleString()}</td>}
-                {showYears.year2022 && <td className="py-2 text-yellow-600">{row.year2022.toLocaleString()}</td>}
-                {showYears.year2023 && <td className="py-2 text-green-600">{row.year2023.toLocaleString()}</td>}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      <div className="mt-4 text-sm text-gray-600">
-        <p><strong>Key Observation:</strong> The dramatic drop in 2020 demonstrates the "stochastic shock" of COVID-19, 
-        while gradual recovery is visible in subsequent years.</p>
-      </div>
-    </div>
-  )
-}
-
 export default function Home() {
   return (
     <>
@@ -220,7 +426,7 @@ export default function Home() {
             </div>
           </div>
 
-          <SimpleChart />
+          <RidershipChart />
 
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-12">
             <div className="flex items-start">
