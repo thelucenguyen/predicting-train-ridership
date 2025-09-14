@@ -402,6 +402,7 @@ function ProphetChart({ predictions }) {
 
           {/* X-axis labels */}
           {predictions.map((d, i) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
             if (i % 2 === 0) { // Show every other label to avoid crowding
               return (
                 <text
@@ -412,7 +413,7 @@ function ProphetChart({ predictions }) {
                   fontSize="10"
                   fill="#6b7280"
                 >
-                  Week {i + 1}
+                  {months[i] || `Month ${i + 1}`}
                 </text>
               )
             }
@@ -602,7 +603,7 @@ function ProphetDemo() {
       // Fit the model
       prophet.fit(trainingData)
       
-      // Generate future dates (12 weeks ahead)
+      // Generate future dates (12 months ahead)
       const futureData = Array.from({ length: 12 }, (_, i) => ({
         ds: `2024-${String(i + 1).padStart(2, '0')}-01`
       }))
@@ -653,7 +654,7 @@ function ProphetDemo() {
             <div><strong>Seasonality:</strong> Weekly (52 periods)</div>
             <div><strong>Changepoint Detection:</strong> Automatic</div>
             <div><strong>Uncertainty Interval:</strong> 80% confidence</div>
-            <div><strong>Forecast Horizon:</strong> 12 weeks (Q1 2024)</div>
+            <div><strong>Forecast Horizon:</strong> 12 months (Full 2024)</div>
             <div><strong>Growth:</strong> Linear with changepoints</div>
           </div>
           
@@ -699,7 +700,7 @@ function ProphetDemo() {
           <ProphetChart predictions={forecast.predictions} />
 
           <div>
-            <h4 className="font-medium mb-3">2024 Ridership Forecast Output:</h4>
+            <h4 className="font-medium mb-3">2024 Annual Ridership Forecast Output:</h4>
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white border rounded-lg">
                 <thead>
@@ -741,8 +742,8 @@ function ProphetDemo() {
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
               <h5 className="font-medium text-orange-900 mb-2">Key Insights</h5>
               <div className="text-orange-800 text-sm space-y-1">
-                <div>Q1 2024 average: <strong>{Math.round(forecast.predictions.reduce((sum, p) => sum + p.yhat, 0) / forecast.predictions.length).toLocaleString()}</strong> riders/week</div>
-                <div>Peak week: <strong>{Math.max(...forecast.predictions.map(p => p.yhat)).toLocaleString()}</strong> riders</div>
+                <div>2024 annual average: <strong>{Math.round(forecast.predictions.reduce((sum, p) => sum + p.yhat, 0) / forecast.predictions.length).toLocaleString()}</strong> riders/month</div>
+                <div>Peak month: <strong>{Math.max(...forecast.predictions.map(p => p.yhat)).toLocaleString()}</strong> riders</div>
                 <div>Growth trajectory: <strong>{forecast.trend.slope > 0 ? 'Recovery continues' : 'Declining trend'}</strong></div>
               </div>
             </div>
@@ -1005,8 +1006,8 @@ CCJPA_ridership <- data.frame(
 # Fit the model
 m <- prophet(CCJPA_ridership)
 
-# Create future dataframe (predict 12 weeks forward)
-future <- make_future_dataframe(m, periods = 12, freq = 'week')
+# Create future dataframe (predict 12 months forward)
+future <- make_future_dataframe(m, periods = 12, freq = 'month')
 
 # Generate forecast
 forecast <- predict(m, future)
