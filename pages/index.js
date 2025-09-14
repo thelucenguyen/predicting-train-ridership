@@ -44,22 +44,6 @@ function RidershipChart() {
   const chartWidth = width - margin.left - margin.right
   const chartHeight = height - margin.top - margin.bottom
 
-  // Scale functions - include forecast data in range
-  const allHistoricalValues = ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023])
-  const allForecastValues = showPrediction ? forecastData.flatMap(d => [d.predicted, d.lower, d.upper]) : []
-  const allValues = [...allHistoricalValues, ...allForecastValues]
-  const maxValue = Math.max(...allValues)
-  const minValue = Math.min(...allValues)
-  const xScale = (index) => (index / (ridershipData.length - 1)) * chartWidth
-  const yScale = (value) => chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
-
-  // Generate path data for each year
-  const generatePath = (yearKey) => {
-    return ridershipData
-      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d[yearKey])}`)
-      .join(' ')
-  }
-
   // Sample forecast data for demonstration - full year 2024
   const forecastData = [
     { predicted: 28500, lower: 26000, upper: 31000 },
@@ -76,8 +60,25 @@ function RidershipChart() {
     { predicted: 32800, lower: 29600, upper: 36000 }
   ]
 
+  // Scale functions - include forecast data in range
+  const allHistoricalValues = ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023])
+  const allForecastValues = showPrediction ? forecastData.flatMap(d => [d.predicted, d.lower, d.upper]) : []
+  const allValues = [...allHistoricalValues, ...allForecastValues]
+  const maxValue = Math.max(...allValues)
+  const minValue = Math.min(...allValues)
+  const xScale = (index) => (index / (ridershipData.length - 1)) * chartWidth
+  const yScale = (value) => chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
+
+  // Generate path data for each year
+  const generatePath = (yearKey) => {
+    return ridershipData
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d[yearKey])}`)
+      .join(' ')
+  }
+
   // Generate forecast path - full line across chart
   const generateForecastPath = () => {
+    if (!showPrediction || forecastData.length === 0) return ''
     return forecastData
       .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.predicted)}`)
       .join(' ')
@@ -85,6 +86,7 @@ function RidershipChart() {
 
   // Generate confidence interval path - full area
   const generateConfidencePath = () => {
+    if (!showPrediction || forecastData.length === 0) return ''
     const upperPath = forecastData
       .map((d, i) => `${xScale(i)} ${yScale(d.upper)}`)
       .join(' L ')
@@ -196,7 +198,7 @@ function RidershipChart() {
             })}
 
             {/* Forecast */}
-            {showPrediction && (
+            {showPrediction && forecastData.length > 0 && (
               <g>
                 {/* Confidence interval */}
                 <path
