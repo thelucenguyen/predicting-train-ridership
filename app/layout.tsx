@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://predicting-train-ridership.vercel.app'),
   title: 'Ridership Prediction with Non-Linear Models',
   description: 'Interactive guide for predicting time series passenger counts using modern statistical methods',
   keywords: ['time series', 'prediction', 'ridership', 'transportation', 'machine learning', 'prophet'],
