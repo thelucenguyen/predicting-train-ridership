@@ -7,6 +7,13 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  distDir: '.next',
+  generateEtags: false,
+  poweredByHeader: false,
+  compress: true,
+  experimental: {
+    legacyBrowsers: false,
   }
 }
 
