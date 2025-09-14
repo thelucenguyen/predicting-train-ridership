@@ -1,8 +1,7 @@
 {
   "name": "ridership-prediction-app",
   "version": "1.0.0",
-  "description": "Interactive guide for predicting time series passenger counts using modern web technologies",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,32 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^14.0.0",
+    "next": "14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.8.0",
-    "lucide-react": "^0.263.1",
-    "papaparse": "^5.4.1",
-    "ml-matrix": "^6.10.7",
-    "simple-statistics": "^7.8.3",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "^5.0.0"
-  },
-  "devDependencies": {
+    "autoprefixer": "^10.0.1",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
-  },
-  "keywords": [
-    "time-series",
-    "prediction",
-    "ridership",
-    "transportation",
-    "machine-learning",
-    "prophet",
-    "granger-causality"
-  ],
-  "author": "Lucille E. Nguyen (Original R Implementation), Updated for Web",
-  "license": "MIT"
+    "eslint-config-next": "14.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.0.0"
+  }
 }
