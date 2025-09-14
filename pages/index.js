@@ -44,9 +44,12 @@ function RidershipChart() {
   const chartWidth = width - margin.left - margin.right
   const chartHeight = height - margin.top - margin.bottom
 
-  // Scale functions
-  const maxValue = Math.max(...ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023]))
-  const minValue = Math.min(...ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023]))
+  // Scale functions - include forecast data in range
+  const allHistoricalValues = ridershipData.flatMap(d => [d.year2019, d.year2020, d.year2021, d.year2022, d.year2023])
+  const allForecastValues = showPrediction ? forecastData.flatMap(d => [d.predicted, d.lower, d.upper]) : []
+  const allValues = [...allHistoricalValues, ...allForecastValues]
+  const maxValue = Math.max(...allValues)
+  const minValue = Math.min(...allValues)
   const xScale = (index) => (index / (ridershipData.length - 1)) * chartWidth
   const yScale = (value) => chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
 
@@ -57,34 +60,38 @@ function RidershipChart() {
       .join(' ')
   }
 
-  // Sample forecast data for demonstration
+  // Sample forecast data for demonstration - full year 2024
   const forecastData = [
     { predicted: 28500, lower: 26000, upper: 31000 },
     { predicted: 29200, lower: 26500, upper: 31900 },
     { predicted: 30100, lower: 27200, upper: 33000 },
     { predicted: 30800, lower: 27800, upper: 33800 },
     { predicted: 31500, lower: 28400, upper: 34600 },
-    { predicted: 32200, lower: 29000, upper: 35400 }
+    { predicted: 32200, lower: 29000, upper: 35400 },
+    { predicted: 31800, lower: 28600, upper: 35000 },
+    { predicted: 31400, lower: 28200, upper: 34600 },
+    { predicted: 31900, lower: 28700, upper: 35100 },
+    { predicted: 32600, lower: 29400, upper: 35800 },
+    { predicted: 33200, lower: 30000, upper: 36400 },
+    { predicted: 32800, lower: 29600, upper: 36000 }
   ]
 
-  // Generate forecast path
+  // Generate forecast path - full line across chart
   const generateForecastPath = () => {
-    const startX = chartWidth
     return forecastData
-      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${startX + (i / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.predicted)}`)
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.predicted)}`)
       .join(' ')
   }
 
-  // Generate confidence interval path
+  // Generate confidence interval path - full area
   const generateConfidencePath = () => {
-    const startX = chartWidth
     const upperPath = forecastData
-      .map((d, i) => `${startX + (i / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.upper)}`)
+      .map((d, i) => `${xScale(i)} ${yScale(d.upper)}`)
       .join(' L ')
     const lowerPath = forecastData
       .slice()
       .reverse()
-      .map((d, i) => `${startX + ((forecastData.length - 1 - i) / (forecastData.length - 1)) * chartWidth * 0.5} ${yScale(d.lower)}`)
+      .map((d, i) => `${xScale(forecastData.length - 1 - i)} ${yScale(d.lower)}`)
       .join(' L ')
     return `M ${upperPath} L ${lowerPath} Z`
   }
@@ -211,7 +218,7 @@ function RidershipChart() {
                 {forecastData.map((d, i) => (
                   <circle
                     key={`forecast-${i}`}
-                    cx={chartWidth + (i / (forecastData.length - 1)) * chartWidth * 0.5}
+                    cx={xScale(i)}
                     cy={yScale(d.predicted)}
                     r={3}
                     fill="#3b82f6"
@@ -220,8 +227,8 @@ function RidershipChart() {
 
                 {/* 2024 label */}
                 <text
-                  x={chartWidth + chartWidth * 0.25}
-                  y={20}
+                  x={chartWidth / 2}
+                  y={15}
                   textAnchor="middle"
                   fontSize="12"
                   fill="#3b82f6"
