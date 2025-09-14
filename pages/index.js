@@ -99,7 +99,7 @@ function RidershipChart() {
   }
 
   const yearColors = {
-    year2019: '#3b82f6',
+    year2019: '#000000',
     year2020: '#dc2626',
     year2021: '#f97316',
     year2022: '#eab308',
@@ -226,18 +226,6 @@ function RidershipChart() {
                     fill="#3b82f6"
                   />
                 ))}
-
-                {/* 2024 label */}
-                <text
-                  x={chartWidth / 2}
-                  y={15}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill="#3b82f6"
-                  fontWeight="bold"
-                >
-                  2024 (Predicted)
-                </text>
               </g>
             )}
 
