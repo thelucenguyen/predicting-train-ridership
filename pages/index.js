@@ -40,7 +40,7 @@ function RidershipChart() {
   // Chart dimensions
   const width = 800
   const height = 400
-  const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+  const margin = { top: 20, right: 30, bottom: 40, left: 70 } // Increased left margin
   const chartWidth = width - margin.left - margin.right
   const chartHeight = height - margin.top - margin.bottom
 
@@ -248,12 +248,12 @@ function RidershipChart() {
 
             {/* Y-axis label */}
             <text
-              x={-40}
+              x={-50}
               y={chartHeight / 2}
               textAnchor="middle"
               fontSize="12"
               fill="#6b7280"
-              transform={`rotate(-90, -40, ${chartHeight / 2})`}
+              transform={`rotate(-90, -50, ${chartHeight / 2})`}
             >
               Weekly Ridership
             </text>
@@ -286,6 +286,172 @@ function RidershipChart() {
       <div className="mt-4 text-sm text-gray-600">
         <p><strong>Key Observations:</strong> The dramatic drop in 2020 demonstrates the "stochastic shock" of COVID-19. 
         The 2024 forecast shows continued gradual recovery with uncertainty bounds reflecting post-pandemic volatility.</p>
+      </div>
+    </div>
+  )
+}
+
+function ProphetChart({ predictions }) {
+  if (!predictions) return null
+
+  const width = 700
+  const height = 350
+  const margin = { top: 20, right: 30, bottom: 40, left: 70 }
+  const chartWidth = width - margin.left - margin.right
+  const chartHeight = height - margin.top - margin.bottom
+
+  // Scale functions
+  const allValues = predictions.flatMap(d => [d.yhat, d.yhat_lower, d.yhat_upper])
+  const maxValue = Math.max(...allValues)
+  const minValue = Math.min(...allValues)
+  const xScale = (index) => (index / (predictions.length - 1)) * chartWidth
+  const yScale = (value) => chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight
+
+  // Generate paths
+  const predictionPath = predictions
+    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.yhat)}`)
+    .join(' ')
+
+  const upperBoundPath = predictions
+    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.yhat_upper)}`)
+    .join(' ')
+
+  const lowerBoundPath = predictions
+    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.yhat_lower)}`)
+    .join(' ')
+
+  // Confidence interval area
+  const confidenceArea = `
+    M ${predictions.map((d, i) => `${xScale(i)} ${yScale(d.yhat_upper)}`).join(' L ')}
+    L ${predictions.slice().reverse().map((d, i) => `${xScale(predictions.length - 1 - i)} ${yScale(d.yhat_lower)}`).join(' L ')}
+    Z
+  `
+
+  return (
+    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+      <h5 className="font-medium text-green-900 mb-3">Prophet 2024 Forecast with Uncertainty Bounds</h5>
+      
+      <svg width={width} height={height} className="border rounded bg-white">
+        <g transform={`translate(${margin.left}, ${margin.top})`}>
+          {/* Grid lines */}
+          {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+            <g key={ratio}>
+              <line
+                x1={0}
+                y1={chartHeight * ratio}
+                x2={chartWidth}
+                y2={chartHeight * ratio}
+                stroke="#e5e7eb"
+                strokeWidth={1}
+              />
+              <text
+                x={-10}
+                y={chartHeight * ratio + 4}
+                textAnchor="end"
+                fontSize="11"
+                fill="#6b7280"
+              >
+                {Math.round(minValue + (maxValue - minValue) * (1 - ratio)).toLocaleString()}
+              </text>
+            </g>
+          ))}
+
+          {/* Confidence interval area */}
+          <path
+            d={confidenceArea}
+            fill="#3b82f6"
+            fillOpacity={0.15}
+          />
+
+          {/* Upper bound line */}
+          <path
+            d={upperBoundPath}
+            fill="none"
+            stroke="#93c5fd"
+            strokeWidth={1.5}
+            strokeDasharray="3,3"
+          />
+
+          {/* Lower bound line */}
+          <path
+            d={lowerBoundPath}
+            fill="none"
+            stroke="#93c5fd"
+            strokeWidth={1.5}
+            strokeDasharray="3,3"
+          />
+
+          {/* Main prediction line */}
+          <path
+            d={predictionPath}
+            fill="none"
+            stroke="#1d4ed8"
+            strokeWidth={3}
+          />
+
+          {/* Prediction points */}
+          {predictions.map((d, i) => (
+            <circle
+              key={i}
+              cx={xScale(i)}
+              cy={yScale(d.yhat)}
+              r={4}
+              fill="#1d4ed8"
+            />
+          ))}
+
+          {/* X-axis labels */}
+          {predictions.map((d, i) => {
+            if (i % 2 === 0) { // Show every other label to avoid crowding
+              return (
+                <text
+                  key={i}
+                  x={xScale(i)}
+                  y={chartHeight + 20}
+                  textAnchor="middle"
+                  fontSize="10"
+                  fill="#6b7280"
+                >
+                  Week {i + 1}
+                </text>
+              )
+            }
+            return null
+          })}
+
+          {/* Y-axis label */}
+          <text
+            x={-50}
+            y={chartHeight / 2}
+            textAnchor="middle"
+            fontSize="12"
+            fill="#6b7280"
+            transform={`rotate(-90, -50, ${chartHeight / 2})`}
+          >
+            Predicted Ridership
+          </text>
+        </g>
+      </svg>
+
+      {/* Chart legend */}
+      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+        <div className="flex items-center">
+          <div className="w-4 h-0.5 mr-2 bg-blue-700"></div>
+          <span>Prediction (yhat)</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-0.5 mr-2 border-t border-blue-300 border-dashed"></div>
+          <span>Confidence Bounds</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-4 h-2 mr-2 bg-blue-600 opacity-15"></div>
+          <span>80% Uncertainty Interval</span>
+        </div>
+      </div>
+
+      <div className="mt-3 text-xs text-green-800">
+        <strong>Prophet Components:</strong> This forecast combines trend, seasonality, and uncertainty quantification. 
+        The shaded area represents the 80% confidence interval for each prediction.
       </div>
     </div>
   )
@@ -529,6 +695,8 @@ function ProphetDemo() {
               </div>
             </div>
           </div>
+
+          <ProphetChart predictions={forecast.predictions} />
 
           <div>
             <h4 className="font-medium mb-3">2024 Ridership Forecast Output:</h4>
